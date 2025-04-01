@@ -1,13 +1,13 @@
-import {ethers} from "hardhat"
-import * as dotenv from "dotenv";
-import * as fs from "fs-extra";
+const { ethers } = require("hardhat");
+const dotenv = require("dotenv");
+const fs = require("fs-extra");
 
 dotenv.config();
 
 async function main() {
   const contractNames = [
-    "accessControl",
-   
+    "userDocuments",
+    "",
     
   ];
 
