@@ -29,22 +29,28 @@ export function Uploader() {
     setSignedUrl("");
 
     try {
-    
-      const { data: user, error: authError } = await supabase.auth.getUser();
+     
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
       if (!user || authError) {
         throw new Error("User must be signed in to upload files.");
       }
 
-      const filePath = `uploads/${Date.now()}_${file.name}`;
+      const sanitizedFileName = file.name.replace(/[^\w\s.-]/gi, "_");
+     
+      const filePath = `uploads/${user.id}/${Date.now()}_${sanitizedFileName}`;
+      console.log("Generated file path:", filePath);
 
     
       const { error } = await supabase.storage
-        .from("documents") 
+        .from("documents")
         .upload(filePath, file, { upsert: true });
 
       if (error) throw error;
 
-     
+      
       const { data, error: urlError } = await supabase.storage
         .from("documents")
         .createSignedUrl(filePath, 3600);
