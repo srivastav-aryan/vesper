@@ -3,14 +3,19 @@ import supabase from "@/config/supabase";
 import { Input } from "@/components/ui/uploaderinput";
 import { Label } from "@/components/ui/uploaderlabel";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from 'next/navigation';
 
 export function Uploader() {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [signedUrl, setSignedUrl] = useState<string>("");
+  const [documentStatus, setDocumentStatus] = useState<string>("");
+  const [documentId, setDocumentId] = useState<string>("");
+
+  const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
@@ -35,7 +40,6 @@ export function Uploader() {
       formData.append("file", file);
 
       const response = await axios.post("/verification/api/upload", formData, {
-        
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -47,6 +51,8 @@ export function Uploader() {
         return;
       }
 
+      setDocumentId(response.data.documentId);
+      
       // if valid, upload to Supabase
       const {
         data: { user },
@@ -73,21 +79,50 @@ export function Uploader() {
 
       setSignedUrl(data.signedUrl);
       setMessage("File uploaded successfully!");
+
+      const { data: statusData, error: statusError } = await supabase
+        .from("documents")
+        .select("status")
+        .eq("file_path", filePath);
+
+      if (statusData && statusData.length > 0) {
+        setDocumentStatus(statusData[0].status);
+      }
     } catch (err: any) {
       console.error("Upload error:", err);
       setMessage(
         err.response?.data?.message ||
           err.message ||
           "Error uploading file. Try again."
-      ); 
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (documentId) {
+      const fetchStatus = async () => {
+        const response = await axios.get(
+          `/verification/api/status?documentId=${documentId}`
+        );
+        setDocumentStatus(response.data.status);
+      };
+      fetchStatus();
+    }
+  }, [documentId]);
+
+  const handleSummarize = () => {
+     if (documentId) {
+       router.push(`/summarizer?documentId=${documentId}`);
+     } else {
+       setMessage("Please upload a document first.");
+     }
+   };
+
   return (
-    <div className="min-h-screen flex justify-center items-center p-4">
-      <div className="p-6 rounded-lg shadow-lg max-w-md w-full space-y-4 border">
+    <div className="min-h-screen flex justify-center items-center p-4 text-center">
+      <div className="p-6 rounded-lg shadow-lg max-w-md w-full space-y-4 border ">
         <Label
           htmlFor="file-upload"
           className="text-lg font-medium text-gray-400"
@@ -102,14 +137,23 @@ export function Uploader() {
         />
 
         {file && <p className="text-sm text-gray-600">Selected: {file.name}</p>}
+        <div className="flex gap-5">
+          <Button
+            onClick={handleUpload}
+            disabled={loading}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50 "
+          >
+            {loading ? "Uploading..." : "Submit"}
+          </Button>
 
-        <Button
-          onClick={handleUpload}
-          disabled={loading}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50"
-        >
-          {loading ? "Uploading..." : "Submit"}
-        </Button>
+          <Button
+            onClick={handleSummarize}
+            disabled={loading || !documentId}
+            className="w-full bg-green-500 hover:bg-green-600 text-white rounded px-4 py-2 disabled:opacity-50"
+          >
+            Summarize Document
+          </Button>
+        </div>
 
         {message && <p className="text-sm text-red-500">{message}</p>}
 
@@ -126,6 +170,8 @@ export function Uploader() {
             </a>
           </p>
         )}
+
+        {documentStatus && <p>Document Status: {documentStatus}</p>}
       </div>
     </div>
   );

@@ -17,6 +17,11 @@ export async function POST(req: Request) {
     const extractedText = await parseDocument(file);
     console.log("Extracted text:", extractedText);
 
+    console.log("File object:", file); 
+    console.log("File name:", file?.name);
+    console.log("File type:", file?.type);
+    console.log("File size:", file?.size);
+
     const isLegal = isLegalDocument(extractedText);
     console.log("Document validation:", isLegal);
     if (!isLegal) {

@@ -11,3 +11,14 @@ export async function parseDocument(file: File): Promise<string> {
     throw new Error("Failed to parse document");
   }
 }
+
+ // works well on its own
+// export async function parseDocument(file: File): Promise<string> {
+//   try {
+//     console.log("parseDocument called. Bypassing pdf-parse.");
+//     return "Test text from parseDocument"; 
+//   } catch (error) {
+//     console.error("Error in parseDocument:", error);
+//     throw new Error("Failed to parse document");
+//   }
+// }
