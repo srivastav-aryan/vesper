@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/uploaderinput";
 import { Label } from "@/components/ui/uploaderlabel";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import axios from "axios"; // Import axios
+import axios from "axios";
 
 export function Uploader() {
   const [file, setFile] = useState<File | null>(null);
