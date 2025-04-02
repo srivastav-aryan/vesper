@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/uploaderinput";
 import { Label } from "@/components/ui/uploaderlabel";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import axios from "axios"; // Import axios
 
 export function Uploader() {
   const [file, setFile] = useState<File | null>(null);
@@ -29,7 +30,24 @@ export function Uploader() {
     setSignedUrl("");
 
     try {
-     
+      // send file to API for validation using axios
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await axios.post("/verification/api/upload", formData, {
+        
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (!response.data.success) {
+        setMessage(response.data.message || "Document verification failed.");
+        setLoading(false);
+        return;
+      }
+
+      // if valid, upload to Supabase
       const {
         data: { user },
         error: authError,
@@ -39,18 +57,14 @@ export function Uploader() {
       }
 
       const sanitizedFileName = file.name.replace(/[^\w\s.-]/gi, "_");
-     
       const filePath = `uploads/${user.id}/${Date.now()}_${sanitizedFileName}`;
-      console.log("Generated file path:", filePath);
 
-    
       const { error } = await supabase.storage
         .from("documents")
         .upload(filePath, file, { upsert: true });
 
       if (error) throw error;
 
-      
       const { data, error: urlError } = await supabase.storage
         .from("documents")
         .createSignedUrl(filePath, 3600);
@@ -61,7 +75,11 @@ export function Uploader() {
       setMessage("File uploaded successfully!");
     } catch (err: any) {
       console.error("Upload error:", err);
-      setMessage(err.message || "Error uploading file. Try again.");
+      setMessage(
+        err.response?.data?.message ||
+          err.message ||
+          "Error uploading file. Try again."
+      ); 
     } finally {
       setLoading(false);
     }
