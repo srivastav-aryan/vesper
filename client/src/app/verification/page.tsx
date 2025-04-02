@@ -1,6 +1,10 @@
+import {Uploader} from '@/components/ui/uploader'
+
 export default function Verification(){
     return(
-        <div>helo</div>
+        <div>
+            <Uploader/>
+        </div>
 
     )
 }

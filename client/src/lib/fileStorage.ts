@@ -2,7 +2,7 @@
 // Get a signed URL for access
 // Delete a document
 
-// import { supabase } from "./supabase"; 
+// import { supabase } from "@/config/supabase"; 
 
 
 export const uploadFile = async (userId: string, file: File) => {
