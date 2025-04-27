@@ -34,7 +34,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <h2>Hello good morning</h2>
+          <h2>Hello good morning again in maain</h2>
         </ThemeProvider>
       </body>
     </html>
